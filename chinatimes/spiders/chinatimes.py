@@ -35,10 +35,10 @@ chrome_options = webdriver.ChromeOptions()
 
 
 class ChinatimesSpider(scrapy.Spider):
-    search_key = '中小企業'
+    search_key = '張碩芳'
     name = 'chinatimes'
     allowed_domains = ['www.chinatimes.com']
-    search_page = 20
+    search_page = 1
     url_format = '''https://www.chinatimes.com/search/{}?page={}&chdtv'''
 
 
@@ -83,20 +83,17 @@ class ChinatimesSpider(scrapy.Spider):
             for el_article in el_article_list:
                 item = ChinatimesItem()
                 el_title_a = el_article.select_one('h3 a')
-                item['href'] = el_title_a.get('href')  # 取得屬性
-                if self.checkIsExist(self.search_key,item['href']):
-                    # 如果已经存在与资料库，跳过这一笔资料
-                    pass
+                item['url'] = el_title_a.get('href')  # 取得屬性
                 item['title'] = el_title_a.get_text()  # 取得內文
                 item['hour'] = el_article.select_one('.hour').get_text()
                 item['date'] = el_article.select_one('.date').get_text()
                 el_category_a = el_article.select_one('.category a')
                 item['category'] = el_category_a.get_text()
-                item['category_href'] = el_category_a.get('href')
+                item['category_url'] = el_category_a.get('href')
                 item['intro'] = el_article.select_one('.intro').get_text().strip()
                 print('parse_list:{}'.format(item))
 
-                yield scrapy.Request(item['href'], callback=self.parse_content, headers=headers, cb_kwargs={
+                yield scrapy.Request(item['url'], callback=self.parse_content, headers=headers, cb_kwargs={
                     'item': item
                 })
         except Exception as err:
@@ -122,16 +119,16 @@ class ChinatimesSpider(scrapy.Spider):
             el_meta_info_div = soup.select_one('.meta-info')
             el_author_a = el_meta_info_div.select_one('.author a')
             if el_author_a is not None:
-                item['author_href'] = el_author_a.get('href')  # 記者鏈接
+                item['author_url'] = el_author_a.get('href')  # 記者鏈接
                 item['author'] = el_author_a.get_text().strip()  # 記者名字
             else:
-                item['author_href'] = ''  # 記者鏈接
+                item['author_url'] = ''  # 記者鏈接
                 item['author'] = el_meta_info_div.select_one('.author').get_text().strip()  # 記者名字
             item['source'] = el_meta_info_div.select_one('.source').get_text()  # 資料來源
             # 提取所有 <p> 的文本，合併成一個字串
             item['content'] = ' '.join([p.get_text(strip=True) for p in soup.select_one('.article-body').select('p')])
             item['tags'] = [tag.get_text() for tag in soup.select('.article-hash-tag .hash-tag a')]
-            item['search_key2'] = self.search_key
+            item['keywords'] = [self.search_key]
             print('parse_content:{}'.format(item))
             yield item
         except Exception as e:
@@ -143,16 +140,3 @@ class ChinatimesSpider(scrapy.Spider):
             print(driver.page_source)
         finally:
             driver.quit()
-
-    def checkIsExist(self,search_key, href):
-        connection = MongoClient('mongodb://192.168.3.6:27017')
-        spider_name = 'chinatimes'  # 爬虫名称：中时新闻网
-        db_chinatimes = connection[spider_name]
-        search_key = 'carbonTax'  # 搜寻条件：碳费
-        col_carbonTax = db_chinatimes[search_key]
-
-        count = col_carbonTax.count_documents({'search_key': search_key, 'href': href})
-        if count > 0:
-            return True
-        else:
-            return False

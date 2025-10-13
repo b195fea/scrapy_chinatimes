@@ -17,8 +17,11 @@ NEWSPIDER_MODULE = "chinatimes.spiders"
 
 # Database
 # MONGO_URI = '127.0.0.1'
-DB_CLIENT = 'chinatimes'
-BOARD_NAME = 'carbonTax'
+# DB_CLIENT = 'chinatimes'
+# BOARD_NAME = 'carbonTax'
+
+
+
 
 
 
@@ -84,8 +87,20 @@ CONCURRENT_REQUESTS_PER_DOMAIN = 2  # 并发控制
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
+
+# MongoDB数据库配置
+MONGO_URI = 'mongodb://localhost:27017/insigh'
+MONGO_USER = 'insight'  # 请填写MongoDB用户名
+MONGO_PASSWORD = 'insight20250701'  # 请填写MongoDB密码
+MONGO_DATABASE = 'chinatimes_news'
+MONGO_COLLECTION = 'articles'
+
+# Configure item pipelines
+# See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-   "chinatimes.pipelines.ChinatimesPipeline": 300,
+    # 禁用默认管道，启用MongoDB管道
+    # 'chinatimes.pipelines.LtnPipeline': 300,
+    'chinatimes.pipelines.MongoDBPipeline': 300,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)

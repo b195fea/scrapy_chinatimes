@@ -3,6 +3,7 @@ import os
 
 from selenium.webdriver.chrome import webdriver
 
+# 中華明國經濟部、公司資料查詢
 # Chrome 瀏覽器設定
 chrome_options = webdriver.ChromeOptions()
 prefs = {
