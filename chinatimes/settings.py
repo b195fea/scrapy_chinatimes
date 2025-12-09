@@ -14,22 +14,24 @@ BOT_NAME = "chinatimes"
 
 SPIDER_MODULES = ["chinatimes.spiders"]
 NEWSPIDER_MODULE = "chinatimes.spiders"
+MAX_CONSECUTIVE_DUPLICATES = 5000 # 文章最高重複次數
 
-# Database
-# MONGO_URI = '127.0.0.1'
-# DB_CLIENT = 'chinatimes'
-# BOARD_NAME = 'carbonTax'
+# USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 
-
-
-
-
-
+DEFAULT_REQUEST_HEADERS = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'Accept-Language': 'zh-TW,zh;q=0.8,en-US;q=0.5,en;q=0.3'
+}
+HTTPERROR_ALLOWED_CODES = [403]
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = "chinatimes (+http://www.yourdomain.com)"
 # USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-ROBOTSTXT_OBEY = False  # 关闭robots.txt遵守机制
+# Obey robots.txt rules
+ROBOTSTXT_OBEY = False
+
+# Concurrency and throttling settings
+CONCURRENT_REQUESTS = 16
 DOWNLOAD_DELAY = 5 # 5秒延迟
 AUTOTHROTTLE_ENABLED = True # 启用自动限速
 CONCURRENT_REQUESTS_PER_DOMAIN = 2  # 并发控制
@@ -56,7 +58,7 @@ CONCURRENT_REQUESTS_PER_DOMAIN = 2  # 并发控制
 #CONCURRENT_REQUESTS_PER_IP = 16
 
 # Disable cookies (enabled by default)
-#COOKIES_ENABLED = False
+COOKIES_ENABLED = True
 
 # Disable Telnet Console (enabled by default)
 #TELNETCONSOLE_ENABLED = False
@@ -75,9 +77,9 @@ CONCURRENT_REQUESTS_PER_DOMAIN = 2  # 并发控制
 
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
-#DOWNLOADER_MIDDLEWARES = {
-#    "chinatimes.middlewares.ChinatimesDownloaderMiddleware": 543,
-#}
+DOWNLOADER_MIDDLEWARES = {
+   "chinatimes.middlewares.ChinatimesDownloaderMiddleware": 543,
+}
 
 # Enable or disable extensions
 # See https://docs.scrapy.org/en/latest/topics/extensions.html
@@ -89,11 +91,12 @@ CONCURRENT_REQUESTS_PER_DOMAIN = 2  # 并发控制
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 
 # MongoDB数据库配置
-MONGO_URI = 'mongodb://localhost:27017/insigh'
-MONGO_USER = 'insight'  # 请填写MongoDB用户名
-MONGO_PASSWORD = 'insight20250701'  # 请填写MongoDB密码
-MONGO_DATABASE = 'chinatimes_news'
-MONGO_COLLECTION = 'articles'
+MONGODB_URI = 'mongodb://localhost:27017/'  # 你的MongoDB连接字符串
+MONGODB_DATABASE = 'scrapy'  # 数据库名称
+MONGODB_COLLECTION = 'chinatimesArticles'  # 集合名称
+MONGODB_USER = ''
+MONGODB_PASSWORD = ''
+
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
@@ -127,3 +130,4 @@ ITEM_PIPELINES = {
 # Set settings whose default value is deprecated to a future-proof value
 TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
 FEED_EXPORT_ENCODING = "utf-8"
+LOG_LEVEL = 'INFO'  # 从 DEBUG 调整为 INFO

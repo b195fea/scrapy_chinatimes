@@ -20,4 +20,5 @@ class ChinatimesItem(scrapy.Item):
     category = scrapy.Field()  # 分類
     category_url = scrapy.Field()  # 分類鏈接
     keywords = scrapy.Field()  # 關鍵字
+    scrapy_time = scrapy.Field() # 抓取時間
     pass
