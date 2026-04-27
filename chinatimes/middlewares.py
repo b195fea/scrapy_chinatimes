@@ -7,7 +7,10 @@ from scrapy import signals
 
 # useful for handling different item types with a single interface
 from itemadapter import is_item, ItemAdapter
+from scrapy.exceptions import IgnoreRequest
+from scrapy.signals import spider_closed
 
+from .mongodb_utils import MongoDBUtils
 
 class ChinatimesSpiderMiddleware:
     # Not all methods need to be defined. If a method is not defined,
@@ -61,43 +64,46 @@ class ChinatimesDownloaderMiddleware:
     # scrapy acts as if the downloader middleware does not modify the
     # passed objects.
 
+    def __init__(self):
+        self.mongo_utils = MongoDBUtils()
+        self.consecutive_duplicates = 0
+        self.max_consecutive_duplicates = 1  # 默认值，可在settings中覆盖
+
     @classmethod
     def from_crawler(cls, crawler):
-        # This method is used by Scrapy to create your spiders.
-        s = cls()
-        crawler.signals.connect(s.spider_opened, signal=signals.spider_opened)
-        return s
+        middleware = cls()
+        # 从settings获取最大重复次数
+        middleware.max_consecutive_duplicates = crawler.settings.getint(
+            'MAX_CONSECUTIVE_DUPLICATES', 30
+        )
+        crawler.signals.connect(middleware.spider_closed, signal=spider_closed)
+        return middleware
 
     def process_request(self, request, spider):
-        # Called for each request that goes through the downloader
-        # middleware.
+        """
+        处理每个请求，检查URL是否已在MongoDB中存在
+        """
+        # 从 spider 实例中获取启动时传递的 coluid 参数
+        # 检查URL是否已存在
+        if self.mongo_utils.url_exists(request.url):
+            spider.logger.info(
+                f'检测到重复URL: {request.url},最大次數：{self.max_consecutive_duplicates},重複次數:{self.consecutive_duplicates}')
+            # 更新连续重复计数
+            self.consecutive_duplicates += 1
+            spider.consecutive_duplicates = self.consecutive_duplicates
 
-        # Must either:
-        # - return None: continue processing this request
-        # - or return a Response object
-        # - or return a Request object
-        # - or raise IgnoreRequest: process_exception() methods of
-        #   installed downloader middleware will be called
+            # 检查是否达到停止条件
+            if self.consecutive_duplicates >= self.max_consecutive_duplicates:
+                spider.logger.info(f'达到最大重复次数 {self.max_consecutive_duplicates}，停止爬虫')
+                spider.crawler.engine.close_spider(spider, '达到最大重复URL数量')
+
+            # 忽略这个重复的请求
+            raise IgnoreRequest(f"重复URL: {request.url}")
+
         return None
 
-    def process_response(self, request, response, spider):
-        # Called with the response returned from the downloader.
-
-        # Must either;
-        # - return a Response object
-        # - return a Request object
-        # - or raise IgnoreRequest
-        return response
-
-    def process_exception(self, request, exception, spider):
-        # Called when a download handler or a process_request()
-        # (from other downloader middleware) raises an exception.
-
-        # Must either:
-        # - return None: continue processing this exception
-        # - return a Response object: stops process_exception() chain
-        # - return a Request object: stops process_exception() chain
-        pass
-
-    def spider_opened(self, spider):
-        spider.logger.info("Spider opened: %s" % spider.name)
+    def spider_closed(self, spider, reason):
+        """爬虫关闭时清理资源"""
+        spider.logger.info(f'爬虫关闭，原因: {reason}')
+        spider.logger.info(f'最终连续重复计数: {self.consecutive_duplicates}')
+        self.mongo_utils.close_connection()

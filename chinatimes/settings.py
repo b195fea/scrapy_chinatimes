@@ -14,7 +14,7 @@ BOT_NAME = "chinatimes"
 
 SPIDER_MODULES = ["chinatimes.spiders"]
 NEWSPIDER_MODULE = "chinatimes.spiders"
-MAX_CONSECUTIVE_DUPLICATES = 5000 # 文章最高重複次數
+MAX_CONSECUTIVE_DUPLICATES = 10 # 文章最高重複次數
 
 # USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 

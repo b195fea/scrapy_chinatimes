@@ -108,7 +108,7 @@ class MongoDBUtils:
                 },
                 upsert=True  # 如果不存在则插入新文档
             )
-            self.logger.info(f"成功存储/更新数据: {item_dict['title']}")
+            print(f"成功存储/更新数据: {item_dict['title']}")
             return item
         except Exception as e:
             print(f"插入数据时出错: {e}")
