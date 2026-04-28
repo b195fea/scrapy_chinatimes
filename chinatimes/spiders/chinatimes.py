@@ -6,6 +6,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from ..items import ChinatimesItem
+from ..error_utils import save_error_page
 from time import sleep
 import math
 from datetime import datetime
@@ -96,13 +97,19 @@ class ChinatimesSpider(scrapy.Spider):
                     'item': item
                 })
         except Exception as e:
+            save_error_page(
+                spider_name='chinatimes',
+                url=response.url,
+                html_content=self.driver.page_source,
+                error_msg=str(e),
+                extra_info={'keyword': self.search_keyword, 'phase': 'parse_list'}
+            )
             print(f"parse_list Unexpected {e=}, {type(e)=}")
             tb = e.__traceback__
             while tb is not None:
                 print(
                     f"[parse_list]錯誤發生在文件 {tb.tb_frame.f_code.co_filename}，第 {tb.tb_lineno} 行")
                 tb = tb.tb_next  # 追溯上一層調用
-            print(self.driver.page_source)
 
     def parse_content(self, response, item):
         print('進入parse_content，網址：{}'.format(response.url))
@@ -133,10 +140,16 @@ class ChinatimesSpider(scrapy.Spider):
             print('parse_content:{}'.format(item))
             yield item
         except Exception as e:
+            save_error_page(
+                spider_name='chinatimes',
+                url=response.url,
+                html_content=self.driver.page_source,
+                error_msg=str(e),
+                extra_info={'keyword': self.search_keyword, 'phase': 'parse_content'}
+            )
             logging.error(f"parse_content Unexpected {e=}, {type(e)=}")
             tb = e.__traceback__
             while tb is not None:
                 print(
                     f"[parse_content]錯誤發生在文件 {tb.tb_frame.f_code.co_filename}，第 {tb.tb_lineno} 行")
                 tb = tb.tb_next  # 追溯上一層調用
-            print(self.driver.page_source)
