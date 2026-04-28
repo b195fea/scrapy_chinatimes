@@ -102,7 +102,8 @@ class ChinatimesSpider(scrapy.Spider):
                 url=response.url,
                 html_content=self.driver.page_source,
                 error_msg=str(e),
-                extra_info={'keyword': self.search_keyword, 'phase': 'parse_list'}
+                extra_info={'keyword': self.search_keyword,
+                            'phase': 'parse_list'}
             )
             print(f"parse_list Unexpected {e=}, {type(e)=}")
             tb = e.__traceback__
@@ -145,7 +146,8 @@ class ChinatimesSpider(scrapy.Spider):
                 url=response.url,
                 html_content=self.driver.page_source,
                 error_msg=str(e),
-                extra_info={'keyword': self.search_keyword, 'phase': 'parse_content'}
+                extra_info={'keyword': self.search_keyword,
+                            'phase': 'parse_content'}
             )
             logging.error(f"parse_content Unexpected {e=}, {type(e)=}")
             tb = e.__traceback__
